@@ -176,6 +176,12 @@ class Model:
             logging.info("Estimating new PCA vector base")
             S_b, S_w = calc_scatter_matrices(data, labels)
             matrix_rank = np.linalg.matrix_rank(S_w)
+            if feat_dim != matrix_rank:
+                logging.warning(
+                    f"The feat_dim estimated from data is {matrix_rank} "
+                    f"but you provide {feat_dim=} which will be used"
+                )
+                matrix_rank = feat_dim
             self.pca = PCA(n_components=matrix_rank)
         elif pca == "skip":
             self.pca = None
@@ -209,10 +215,10 @@ class Model:
         else:
             self.pca.fit(data)
             if self.pca.n_components_ == data_dim:
-                logging.info("PCA keeps the {data_dim=} but decoralates the features")
+                logging.info(f"PCA keeps the {data_dim=} but decoralates the features")
             else:
                 logging.info(
-                    "PCA reduces {data_dim=} to {self.pca.n_components_} and decoralates the features"
+                    f"PCA reduces {data_dim=} to {self.pca.n_components_} and decoralates the features"
                 )
 
         X = self.transform(data, from_space="D", to_space="X")
