@@ -17,7 +17,7 @@ from scipy.linalg import eigh
 
 
 def optimize_maximum_likelihood(X, labels):
-    """ Performs the optimization in Fig. 2 of p.537 of Ioffe 2006.
+    """Performs the optimization in Fig. 2 of p.537 of Ioffe 2006.
 
     DESCRIPTION
      - The main model parameters are `m`, `A`, and `Psi`.
@@ -81,14 +81,14 @@ def optimize_maximum_likelihood(X, labels):
 
 
 def as_dictionary_of_dictionaries(labels, means, cov_diags):
-    """ Dictionary storing one dictionary of parameters per category. """
+    """Dictionary storing one dictionary of parameters per category."""
     assert len(labels) == len(means) == len(cov_diags)
 
     all_params = dict()
     for label, mean, cov_diag in zip(labels, means, cov_diags):
         category_params = dict()
-        category_params['mean'] = mean
-        category_params['cov_diag'] = cov_diag
+        category_params["mean"] = mean
+        category_params["cov_diag"] = cov_diag
 
         all_params[label] = category_params
 
@@ -96,40 +96,40 @@ def as_dictionary_of_dictionaries(labels, means, cov_diags):
 
 
 def calc_A(n_avg, Lambda_w, W):
-    """ See Fig. 2 on p.537 of Ioffe 2006. """
+    """See Fig. 2 on p.537 of Ioffe 2006."""
     Lambda_w_diagonal = Lambda_w.diagonal()  # Should be diagonal matrix.
 
     inv_W_T = np.linalg.inv(W.T)
 
-    return inv_W_T * (n_avg / (n_avg - 1) * Lambda_w_diagonal) ** .5
+    return inv_W_T * (n_avg / (n_avg - 1) * Lambda_w_diagonal) ** 0.5
 
 
 def calc_Lambda_b(S_b, W):
-    """ See Fig. 2 on p.537 of Ioffe 2006. """
+    """See Fig. 2 on p.537 of Ioffe 2006."""
     return np.matmul(np.matmul(W.T, S_b), W)
 
 
 def calc_Lambda_w(S_w, W):
-    """ See Fig. 2 on p.537 of Ioffe 2006. """
+    """See Fig. 2 on p.537 of Ioffe 2006."""
     return np.matmul(np.matmul(W.T, S_w), W)
 
 
 def calc_m(X):
-    """ See Fig. 2 on p.537 of Ioffe 2006. """
+    """See Fig. 2 on p.537 of Ioffe 2006."""
     assert len(X.shape) == 2
 
     return X.mean(axis=0)
 
 
 def calc_n_avg(Y):
-    """ This is the \"hack\" suggested in Fig 2 on p.537 of Ioffe 2006. """
+    """This is the \"hack\" suggested in Fig 2 on p.537 of Ioffe 2006."""
     unique = np.unique(Y)
 
     return len(Y) / unique.shape[0]
 
 
 def calc_Psi(Lambda_w, Lambda_b, n_avg):
-    """ See Fig. 2 on p.537 of Ioffe 2006. """
+    """See Fig. 2 on p.537 of Ioffe 2006."""
     Lambda_w_diagonal = Lambda_w.diagonal()  # Should be diagonal matrix.
     Lambda_b_diagonal = Lambda_b.diagonal()  # Should be diagonal matrix.
 
@@ -141,7 +141,7 @@ def calc_Psi(Lambda_w, Lambda_b, n_avg):
 
 
 def calc_scatter_matrices(X, Y):
-    """ See Equations (1) on p.532 of Ioffe 2006. """
+    """See Equations (1) on p.532 of Ioffe 2006."""
     assert len(X.shape) == 2
     assert X.shape[0] == len(Y)
 
@@ -161,7 +161,6 @@ def calc_scatter_matrices(X, Y):
 
         m_ks.append(X_k.mean(axis=0))
         n_ks.append(bool_idxs.sum())
-
         cov_ks.append(np.cov(X_k.T))
 
     n_ks = np.asarray(n_ks)
@@ -177,7 +176,7 @@ def calc_scatter_matrices(X, Y):
 
 
 def calc_W(S_b, S_w):
-    """ See Fig. 2 on p.537 of Ioffe 2006. """
+    """See Fig. 2 on p.537 of Ioffe 2006."""
     eigenvalues, eigenvectors = eigh(S_b, S_w)
 
     return eigenvectors
@@ -185,7 +184,7 @@ def calc_W(S_b, S_w):
 
 def get_posterior_params(U_model, Y, prior_params):
     labels = np.asarray(Y)
-    prior_cov_diagonal = prior_params['cov_diag']
+    prior_cov_diagonal = prior_params["cov_diag"]
 
     cov_diags = []
     means = []
@@ -207,28 +206,30 @@ def get_posterior_params(U_model, Y, prior_params):
 
 
 def get_posterior_predictive_params(posterior_params):
-    """ Likelihood covariance matrix is an Identity matrix. """
+    """Likelihood covariance matrix is an Identity matrix."""
     pp_params = posterior_params.copy()
 
     for k, k_params in pp_params.items():
-        k_params['cov_diag'] += 1
+        k_params["cov_diag"] += 1
 
     return pp_params
 
 
 def get_prior_params(Psi, dims):
-    """ See Equation (2) on p.533 of Ioffe 2006. """
+    """See Equation (2) on p.533 of Ioffe 2006."""
     cov_diag = Psi.diagonal()[dims]
     mean = np.zeros(dims.shape)
 
-    return {'mean': mean, 'cov_diag': cov_diag}
+    return {"mean": mean, "cov_diag": cov_diag}
 
 
 def get_relevant_U_dims(Psi):
-    """ See Fig. 2 on p.537 of Ioffe 2006. """
+    """See Fig. 2 on p.537 of Ioffe 2006."""
     relevant_dims = np.squeeze(np.argwhere(Psi.diagonal() != 0))
 
     if relevant_dims.shape == ():
-        relevant_dims = relevant_dims.reshape(1,)
+        relevant_dims = relevant_dims.reshape(
+            1,
+        )
 
     return relevant_dims

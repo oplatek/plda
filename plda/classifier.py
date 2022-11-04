@@ -12,20 +12,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+import pickle
 import numpy as np
 from scipy.special import logsumexp
 from .model import Model
+from typing import Optional
 
 
 class Classifier:
-    def __init__(self):
-        self.model = None
+    def __init__(self, model: Optional[Model] = None):
+        self.model = Model() if model is None else model
 
-    def fit_model(self, X, Y, n_principal_components=None):
-        self.model = Model(X, Y, n_principal_components)
+    def fit_model(self, X, Y, **kwargs):
+        self.model.fit(X, Y, **kwargs)
 
-    def predict(self, data, space='D', normalize_logps=False):
-        """ Classifies data into categories present in the training data.
+    def save_model(self, output_path):
+        with open(output_path, "wb") as w:
+            pickle.dump(self.model, w)
+
+    @classmethod
+    def load_model(cls, model_path):
+        with open(model_path, "rb") as r:
+            model = pickle.load(r)
+        return cls(model)
+
+    def predict(self, data, space="D", normalize_logps=False):
+        """Classifies data into categories present in the training data.
 
         DESCRIPTION
          Predictions are the MAP estimates,
@@ -70,9 +82,8 @@ class Classifier:
              These are just the normalized posterior predictive
               probabilities, aka model certainties.
         """
-        if space != 'U_model':
-            data = self.model.transform(data,
-                                        from_space=space, to_space='U_model')
+        if space != "U_model":
+            data = self.model.transform(data, from_space=space, to_space="U_model")
 
         logpps_k, K = self.calc_logp_pp_categories(data, normalize_logps)
         predictions = K[np.argmax(logpps_k, axis=-1)]
